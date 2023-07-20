@@ -65,37 +65,3 @@ form.onChange(['ИНН (Контрагент)'], true).setVisibility(['Расч�
         const filtered = catalogINN.filter(item => item.columns['ИНН'] === inn).map(item => item.columns['Расчетный счет']);
         return filtered.length > 0;
     })
-
-
-// Одно обязательное поле из двух
-form.onChange(['Расчетный счет(авто)', 'Расчетный счет'], true)
-    .validate('Расчетный счет', state => {
-        const [a, b] = state.changes;
-        const aIsEmpty = !a || !a.item_id;
-        const bIsEmpty = !b || !b.text;
-
-        if (aIsEmpty && bIsEmpty)
-            return {
-                errorMessage: 'Необходимо указать Рассчётный счёт'
-            };
-
-        return null;
-    });
-
-
-
-form.onChange(['Расчетный счет(авто)', 'Расчетный счет'], true)
-    .validate('Расчетный счет(авто)', state => {
-        const [a, b] = state.changes;
-        const aIsEmpty = !a || !a.item_id;
-        const bIsEmpty = !b || !b.text;
-
-        if (aIsEmpty && bIsEmpty)
-            return {
-                errorMessage: 'Необходимо выбрать Рассчётный счёт'
-            };
-            
-        return null;
-    });
-
-
