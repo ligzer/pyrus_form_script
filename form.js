@@ -1,7 +1,8 @@
 /**
- * Below is a simple script template.
- * Instead of `watchingFieldName` and `calculatedFieldName` use the real field names of this form.
+ * Форма на оплату счёта
  */
+
+// Заполняем сумму налога
 form.onChange(['Сумма', 'Ставка НДС']).setValues(['Сумма НДС'], 
     state => {
         const [sum, tax] = state.changes;
@@ -26,84 +27,74 @@ form.getCatalog('Банковские счета контрагентов').then
   catalogINN = items;
 });
 
-form.onChange(['ИНН (Контрагент)']).setValues(['Расчетный счет(авто)', 'БИК(авто)'],
-    state => {
-        const inn = state.changes[0].value;
-        const filtered = catalogINN.filter(item => item.columns['ИНН'] === inn).map(item => [item.columns['Расчетный счет'],item.columns['БИК']]);;
-        console.warn(filtered)
-        return filtered.length > 0
-            ? filtered[0]
-            : ['', '']
+
+// Фильтруем поле банковские счета
+form.onChange(['ИНН (Контрагент)'], true).setFilter("Расчетный счет(авто)", state => {
+    let inn = null;
+    if (state.changes.length > 0)
+        inn = state.changes[0].value
+    else
+        inn = state.prev[0].value;
+    const filtered = catalogINN.filter(item => item.columns['ИНН'] === inn).map(item => item.columns['Расчетный счет']);
+    return { values: filtered }
+
+});
+
+
+
+//Скрываем ненужные поля
+form.onChange(['ИНН (Контрагент)'], true).setVisibility(['Наименование банка', 'Расчетный счет'], state => {
+        let inn = null;
+        if (state.changes.length > 0)
+            inn = state.changes[0].value
+        else
+            inn = state.prev[0].value;
+        const filtered = catalogINN.filter(item => item.columns['ИНН'] === inn).map(item => item.columns['Расчетный счет']);
+        return filtered.length == 0;
+    })
+
+
+
+form.onChange(['ИНН (Контрагент)'], true).setVisibility(['Расчетный счет(авто)'], state => {
+
+        let inn = null;
+        if (state.changes.length > 0)
+            inn = state.changes[0].value
+        else
+            inn = state.prev[0].value;
+        const filtered = catalogINN.filter(item => item.columns['ИНН'] === inn).map(item => item.columns['Расчетный счет']);
+        return filtered.length > 0;
+    })
+
+
+// Одно обязательное поле из двух
+form.onChange(['Расчетный счет(авто)', 'Расчетный счет'], true)
+    .validate('Расчетный счет', state => {
+        const [a, b] = state.changes;
+        const aIsEmpty = !a || !a.item_id;
+        const bIsEmpty = !b || !b.text;
+
+        if (aIsEmpty && bIsEmpty)
+            return {
+                errorMessage: 'Необходимо указать Рассчётный счёт'
+            };
+
+        return null;
     });
 
 
 
+form.onChange(['Расчетный счет(авто)', 'Расчетный счет'], true)
+    .validate('Расчетный счет(авто)', state => {
+        const [a, b] = state.changes;
+        const aIsEmpty = !a || !a.item_id;
+        const bIsEmpty = !b || !b.text;
 
-form.onChange(['ИНН (Контрагент)']).setFilter("Банковские счета контрагентов", state => {
-  const [changes] = state.changes;
-  if (!catalogINN || !changes || !changes.value)
-    return null;
-  const inn = changes.value;
-//   const regionCol = state.changes[0].columns["State"];
-
-  const filtered = catalogINN.filter(item => item.columns['ИНН'] === inn).map(item => item.columns['Расчетный счет']);;
-//   const filtered = catalogItems
-//     .filter(item => item.columns["State"] === regionCol)
-//     .map(item => item.columns["City"]);
-
-  return { values: filtered }
-//   return filtered.length > 0
-//     ? {
-//         values: filtered
-//       }
-//     : null
-});
-
-
-Прячем автоматические поля, если они не заполнены
-form.onChange(['Расчетный счет(авто)'], true).setVisibility(['Расчетный счет(авто)'], state => {
-        if (state.changes.length > 0)
-            return state.changes[0].value.length > 0
-        else
-            return state.prev[0].value.length > 0;
-    })
-
-form.onChange(['Расчетный счет(авто)'], true).setVisibility(['Расчетный счет'], state => {
-        if (state.changes.length > 0)
-            return state.changes[0].value.length == 0
-        else
-            return state.prev[0].value.length == 0;
-    })
-
-form.onChange(['БИК(авто)'], true).setVisibility(['БИК(авто)'], state => {
-        if (state.changes.length > 0)
-            return state.changes[0].value.length > 0
-        else
-            return state.prev[0].value.length > 0;
-    })
-
-form.onChange(['БИК(авто)'], true).setVisibility(['Наименование банка'], state => {
-        if (state.changes.length > 0)
-            return state.changes[0].value.length == 0
-        else
-            return state.prev[0].value.length == 0;
-    })
-
-
-
-// Одно обязательное поле из двух
-form.onChange(['Банковские счета контрагентов', 'Расчетный счет'], true)
-    .validate('Расчетный счет', state => {
-      const [a, b] = state.changes;
-
-      const aIsEmpty = !a || !a.text;
-      const bIsEmpty = !b || !b.text;
-
-      if (aIsEmpty && bIsEmpty)
-        return {
-          errorMessage: 'Необходимо указать Рассчётный счёт'
-        };
-
+        if (aIsEmpty && bIsEmpty)
+            return {
+                errorMessage: 'Необходимо выбрать Рассчётный счёт'
+            };
+            
         return null;
     });
 
